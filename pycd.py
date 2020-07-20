@@ -6,6 +6,11 @@ import curses
 current_option = 0
 options = ['aaa', 'bbb', 'ccc', 'ddd', 'eee']
 
+def get_files():
+   files = os.listdir('.')
+   files.sort()
+   return files
+
 def change_option(option, direction):
    if direction == 'UP':
       option = len(options) - 1 if option == 0 else option - 1
@@ -15,31 +20,40 @@ def change_option(option, direction):
 
 def move_arrow(direction, screen):
    global current_option
-   #for i in range(8):
-   #   screen.delch(current_option, 0)
    current_option = change_option(current_option, direction)
-   screen.addstr(current_option, 0, "--> ")
+   screen.addstr(current_option, 0, "--> ", curses.color_pair(1))
 
 
 stdscr = curses.initscr()
 curses.cbreak()
 curses.noecho()
+curses.start_color()
+curses.use_default_colors()
+curses.init_pair(1, curses.COLOR_RED, -1)
+curses.init_pair(2, curses.COLOR_BLUE, -1)
 stdscr.keypad(1)
 stdscr.refresh()
 
 
 key = ''
 while key != ord('q'):
+   options = get_files()
    stdscr.refresh()
    for i in range(len(options)):
-      stdscr.addstr(i, 0, "    " + options[i])
+      path = os.getcwd() + '/' + options[i]
+      if os.path.isdir(path):
+         stdscr.addstr(i, 0, "    " + options[i] + "/", curses.color_pair(2))
+      else:
+         stdscr.addstr(i, 0, "    " + options[i])
 
    if key == curses.KEY_UP:
       move_arrow('UP', stdscr)
    elif key == curses.KEY_DOWN:
       move_arrow('DOWN', stdscr)
+   else:
+      move_arrow('', stdscr)
 
-   stdscr.addstr(len(options), 0, "Hit 'q' to quit")
+   stdscr.addstr(len(options) + 1, 0, "Hit 'q' to quit")
    key = stdscr.getch()
 
 curses.endwin()
